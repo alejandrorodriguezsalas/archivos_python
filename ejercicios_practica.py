@@ -15,9 +15,52 @@ __author__ = "Inove Coding School"
 __email__ = "alumnos@inove.com.ar"
 __version__ = "1.2"
 
+import csv
+import re
+
+def pasar_HMS_seg(HMS):
+    h,m,s = HMS.split(':') 
+    return int(h) * 3600 + int(m) * 60 + int(s)
+
+
+def pasar_seg_HMS(seg):
+    h = seg // 3600
+    m = (seg%3600) // 60
+    s = (seg%3600) % 60
+    hsm = str(h) + ':' + str(m) + ':' + str(s)
+    return hsm
+
+
+def estadisticas(archivo,division,diciplina):
+    acum = 0
+    cont = 0
+    max_tiempo = None
+    min_tiempo = None
+    for i in range(len(archivo)):
+        if archivo[i].get('Division') == division:
+            if archivo[i].get(diciplina) == '':
+                continue
+            segundos_totales = (pasar_HMS_seg(HMS=archivo[i].get(diciplina)))
+            acum += segundos_totales
+            cont += 1
+            if max_tiempo == None or max_tiempo < segundos_totales:
+                max_tiempo = segundos_totales
+            if min_tiempo == None or min_tiempo > segundos_totales:
+                min_tiempo = segundos_totales
+
+    min_tiempo = pasar_seg_HMS(seg=min_tiempo)
+    max_tiempo = pasar_seg_HMS(seg=max_tiempo)
+    prom = pasar_seg_HMS(seg=acum//cont)
+
+    print('''Estadisticas de la division {} en {}:
+    Minimo tiempo: {}
+    Máximo tiempo: {}
+    Tiempo promedio de los competidores: {}
+    '''.format(division,diciplina,min_tiempo,max_tiempo,prom))
+   
 
 def ej1():
-    print("Cuenta caracteres")
+    print("\n   Ej1:Cuenta caracteres\n")
     cantidad_letras = 0
 
     '''
@@ -28,10 +71,21 @@ def ej1():
     Debe realizar la sumatoria total de la cantidad de caracteres de todas
     las líneas para obtener el total del archivo e imprimirlo en pantalla
     '''
-
+    fi = open('texto.txt','r')
+    contenido = fi.read()
+    cantidad_letras = len(contenido)
+    print('Cantidad de caracteres de "texto.txt: ',cantidad_letras)
+    fi.seek(0)
+    cantidad_letras = 0
+    for line in fi:
+        print(line,end='')
+        cantidad_letras += len(line)
+    print('Cantidad de caracteres de "texto.txt: ',cantidad_letras)
+    fi.close()
+    
 
 def ej2():
-    print("Transcribir!")
+    print("\n   Ej2:Transcribir!\n")
     cantidad_letras = 0
     '''
     Deberá abrir un archivo txt para escritura (un archivo nuevo)
@@ -49,11 +103,21 @@ def ej2():
     NOTA: Recuerde agregar el salto de línea "\n" a cada entrada
     de texto de la consola antes de copiar la archivo.
     '''
+    fi = open('Ej2.txt','w')
+    print('Para salir solo ingrese enter')
+    while True:
+        linea = [str(input('Ingrese linea de texto que desee agragar al archivo\n')),'\n']
+        if linea[0] == '':
+            break
+        cantidad_letras += len(linea[0])
+        fi.writelines(linea)
+    fi.close()
+    print('Cantidad de caracteres escritos: ',cantidad_letras)
 
 
 def ej3():
-    print("Escrutinio de los alquileres de Capital Federal")
-    cantidad_ambientes = 2
+    print("\n   Ej3:Escrutinio de los alquileres de Capital Federal\n")
+    #cantidad_ambientes = 2
 
     '''
     Realizar un prorgrama que solicite la cantidad de
@@ -68,10 +132,43 @@ def ej3():
     4) Obtener el mínimo valor de alquiler en "pesos"
     de la cantidad de ambientes deseados.
     '''
+    print('''Ingrese una cantidad de ambientes para analizar:
+    1- Cantidad de alquileres en "pesos" disponible
+    2- Promedio de valor de alquileres
+    3- Máximo valor de alquiler en pesos
+    4- Minimo valor de alquiler en pesos''')
+    amb = str(input('¿Que cantidad de ambientes desea analizar?  '))
+    with open('propiedades.csv') as csvfile:
+        data = list(csv.DictReader(csvfile))
+    
+    cont = 0
+    acum = 0
+    max_precio = None
+    min_precio = None
+    
 
+    for i in range(len(data)):
+        if data[i].get('ambientes') == amb and data[i].get('moneda') == 'ARS':
+            cont += 1
+            precio = float(data[i].get('precio'))
+            acum += precio
+            if max_precio == None or max_precio < precio:
+                max_precio = precio
+            if min_precio == None or min_precio > precio:
+                min_precio = precio
+    
+    csvfile.close()
 
+    print('''
+    1- Cantidad de alquileres en "pesos" disponible : {}
+    2- Promedio de valor de alquileres: {}
+    3- Máximo valor de alquiler en pesos: {}
+    4- Minimo valor de alquiler en peso: {}'''.format(cont,acum/cont,max_precio,min_precio))
+
+    
 def ejercicio_extra():
-    print("Ahora sí! buena suerte :)")
+    print('\n   Ej4:Estadisticas')
+    print("Ahora sí! buena suerte :)\n")
 
     '''
     Para poder realizar este ejercicio deberán descargarse el
@@ -150,11 +247,39 @@ def ejercicio_extra():
     de Python que resuelva este problema.
 
     '''
+    with open('2019 Ironman World Championship Results.csv',) as csvfile:
+        data = list(csv.DictReader(csvfile))
+    
+    print(''' Veremos las estadisticas de las diciplinas de Swim, Bike y Run en las divisiones:
+    - MPRO
+    - M45-49
+    - M25-29
+    - M18-24
+    ''')
+
+    estadisticas(archivo=data,division='MPRO',diciplina='Swim')
+    estadisticas(archivo=data,division='MPRO',diciplina='Bike')
+    estadisticas(archivo=data,division='MPRO',diciplina='Run')
+
+    estadisticas(archivo=data,division='M45-49',diciplina='Swim')
+    estadisticas(archivo=data,division='M45-49',diciplina='Bike')
+    estadisticas(archivo=data,division='M45-49',diciplina='Run')
+
+    estadisticas(archivo=data,division='M25-29',diciplina='Swim')
+    estadisticas(archivo=data,division='M25-29',diciplina='Bike')
+    estadisticas(archivo=data,division='M25-29',diciplina='Run')
+
+    estadisticas(archivo=data,division='M18-24',diciplina='Swim')
+    estadisticas(archivo=data,division='M18-24',diciplina='Bike')
+    estadisticas(archivo=data,division='M18-24',diciplina='Run')
+
+    csvfile.close()
 
 
 if __name__ == '__main__':
-    print("Ejercicios de práctica")
-    #ej1()
-    #ej2()
-    #ej3()
-    #ejercicio_extra()
+    print("\n\n             Ejercicios de práctica\n")
+    ej1()
+    ej2()
+    ej3()
+    ejercicio_extra()
+    print('\n********************************* FIN DEL PROGRAMA *********************************')
